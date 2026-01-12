@@ -65,8 +65,7 @@ def button_click_event():
     ctk.CTkLabel(scrollable_frame, text=p['Generation']).pack()
     ctk.CTkLabel(scrollable_frame, text=p['Legendary']).pack()
 
-    if p['Name'].lower() == "pikachu":
-      image_label.place(x=100, y=300)
+    sprite_path = f"pokemon sprites/{p['Name'].lower()}.png"
 
 button = ctk.CTkButton(app, text="Search 🔍", command=button_click_event)
 button.pack(padx=20, pady=20)
