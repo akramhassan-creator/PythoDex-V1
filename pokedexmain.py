@@ -2,6 +2,7 @@ import PIL.Image
 import pandas as pd
 import customtkinter as ctk
 import matplotlib
+from customtkinter import CTkImage
 from fontTools.misc.cython import returns
 from PIL import Image
 
@@ -28,7 +29,7 @@ label2 = ctk.CTkLabel(app, font=afont, text="Enter your Pokemon Name:")
 label2.pack(pady=20)
 
 close_button = ctk.CTkButton(app, font=my_font, text="Close", command=app.destroy)
-close_button.place(relx=0.5, rely=0.95, anchor="center")
+close_button.place(relx=0.85, rely=0.95, anchor="nw")
 
 def clear_scrollable_frames():
     for widget in scrollable_frame.winfo_children():
@@ -54,6 +55,23 @@ def button_click_event():
 
     p = result.iloc[0]
 
+    sprite_path = f"pokemon sprites/{p['Name'].lower()}.png"
+
+    try:
+        image = ctk.CTkImage(
+            dark_image=Image.open(sprite_path),
+            size=(100, 100),
+        )
+
+        image_label.configure(image=image, text="")
+        image_label.image = image
+        image_label.pack(padx=2, pady=2)
+
+    except FileNotFoundError:
+        image_label.configure(text="Image not found", image="")
+
+
+
     ctk.CTkLabel(scrollable_frame, text=p['Name']).pack()
     ctk.CTkLabel(scrollable_frame, text=p['Type 1']).pack()
     ctk.CTkLabel(scrollable_frame, text=p['Type 2']).pack()
@@ -65,7 +83,6 @@ def button_click_event():
     ctk.CTkLabel(scrollable_frame, text=p['Generation']).pack()
     ctk.CTkLabel(scrollable_frame, text=p['Legendary']).pack()
 
-    sprite_path = f"pokemon sprites/{p['Name'].lower()}.png"
 
 button = ctk.CTkButton(app, text="Search 🔍", command=button_click_event)
 button.pack(padx=20, pady=20)
@@ -74,9 +91,10 @@ scrollable_frame = ctk.CTkScrollableFrame(app, width=300, height=300)
 scrollable_frame.pack(padx=20, pady=20)
 
 
-image = ctk.CTkImage(dark_image=Image.open("C:\\Users\\Learner\\PycharmProjects\\PythonProject1\\pokemon sprites\\pikachu.png"),
-size=(200, 200))
+image = ctk.CTkImage(dark_image=Image.open("C:\\Users\\Learner\\PycharmProjects\\Pokedex-V1\\pokemon sprites\\pikachu.png"),
+size=(500, 500))
 
-image_label = ctk.CTkLabel(app, image=image, text="")
+image_label = ctk.CTkLabel(app, text="")
+image_label.pack(padx=20, pady=20)
 
 app.mainloop()
