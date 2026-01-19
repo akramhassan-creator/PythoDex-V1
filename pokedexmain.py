@@ -1,5 +1,3 @@
-from _pyrepl.commands import clear_screen
-
 import pandas as pd
 import customtkinter as ctk
 import matplotlib
@@ -27,6 +25,13 @@ app.wm_iconbitmap('pokeball.ico')
 progressbar = ctk.CTkProgressBar(app, orientation="horizontal")
 progressbar.start()
 progressbar.pack_forget()
+
+spinner_angle = 0
+spinner_running = False
+spinner_label = None
+spinner_image_original = Image.open("rotpoke.png")
+
+
 
 my_font = ctk.CTkFont(family="<Helvetica>", size=20)
 font = ctk.CTkFont(family="<Helvetica>", size=30)
