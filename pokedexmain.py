@@ -22,10 +22,6 @@ app.title("Pokedex Tracker")
 app.geometry("1280x800")
 app.wm_iconbitmap('pokeball.ico')
 
-progressbar = ctk.CTkProgressBar(app, orientation="horizontal")
-progressbar.start()
-progressbar.pack_forget()
-
 spinner_angle = 0
 spinner_running = False
 spinner_label = None
@@ -41,13 +37,13 @@ bold_font = ctk.CTkFont(family="Helvetica", size=20, weight="bold")
 pold_font = ctk.CTkFont(family="Helvetica", size=30, weight="bold")
 statfont = ctk.CTkFont(family="Helvetica", size=15)
 
-progressbar = ctk.CTkProgressBar(app, orientation="horizontal")
 
 label = ctk.CTkLabel(app, font=tfont, text="Welcome to")
 label.pack(pady=50)
 
-poke_image = ctk.CTkImage(dark_image=Image.open("C:\\Users\\Learner\\PycharmProjects\\Pokedex-V1\\Pokedex_logo.png"),
+poke_image = ctk.CTkImage(dark_image=Image.open("C:\\Users\\akybo\\PycharmProjects\\Pokedex-V1\\Pokedex_logo.png"),
                           size=(387, 140))
+
 
 poke_label = ctk.CTkLabel(app, image=poke_image, text="")
 poke_label.pack(pady=(20, 0))
@@ -69,40 +65,72 @@ def clear_scrollable_frames():
     for widget in scrollable_frame.winfo_children():
         widget.destroy()
 
+def rotate_spinner():
+    global spinner_angle, spinner_running
 
-def show_loading():
-    clear_scrollable_frames()
+    if not spinner_running:
+        return
 
-    ctk.CTkLabel(app, text="Loading Pokemon...",
-                 font=bold_font,
-                 ).pack(pady=(20, 0))
+    spinner_angle = (spinner_angle + 10) % 360
 
-    progressbar.pack_forget()
-    progressbar.start()
+    rotated = spinner_image_original.rotate(spinner_angle)
 
+    spinner_ctk_image = CTkImage(dark_image=rotated, size=(100, 100))
 
-def hide_loading():
-    progressbar.stop()
-    progressbar.pack_forget()
+    if spinner_label and spinner_label.winfo_exists():
+        spinner_label.configure(image=spinner_ctk_image)
+        spinner_label.image = spinner_ctk_image
+
+    if spinner_running:
+        app.after(50, rotate_spinner)
+
+def start_spinner():
+    global spinner_running, spinner_label, spinner_angle
+
+    for widget in scrollable_frame.winfo_children():
+        widget.destroy()
+
+    spinner_angle = 0
+
+    ctk.CTkLabel(scrollable_frame, text = 'Loading Pokemon...', font=tfont, text_color="yellow").pack(pady=20)
+
+    spinner_ctk_image = ctk.CTkImage(
+        dark_image=spinner_image_original, size=(100, 100))
+
+    spinner_label = ctk.CTkLabel(
+        scrollable_frame,
+        image=spinner_ctk_image,
+        text="",
+    )
+    spinner_label.image = spinner_ctk_image
+    spinner_label.pack(pady=20)
+
+    spinner_running = True
+    rotate_spinner()
+
+def stop_spinner():
+    global spinner_running
+    spinner_running = False
+
+if spinner_label and spinner_label.winfo_exists():
+    spinner_label.destroy()
+    spinner_label = None
 
 
 def show_pokemon_threaded(p):
-    for widget in scrollable_frame.winfo_children():
-        widget.destroy()
-    show_loading()
+    start_spinner()
 
     def task():
-        show_pokemon(p)
-        app.after(0, hide_loading)
+        try:
+            show_pokemon(p)
+        finally:
 
-    threading.Thread(target=task).start()
+            app.after(0, lambda: stop_spinner())
+
+    threading.Thread(target=task, daemon=True).start()
 
 
 def show_pokemon(p):
-    for widget in scrollable_frame.winfo_children():
-        widget.destroy()
-
-    ctk.CTkLabel(scrollable_frame, font=pold_font, text=p['Name']).pack()
 
     pokemon_name = p['Name'].lower()
     pokemon = pb.pokemon(pokemon_name)
@@ -113,6 +141,11 @@ def show_pokemon(p):
         type2_text = p['Type 2']
     else:
         type2_text = "Not Applicable"
+
+        for widget in scrollable_frame.winfo_children():
+            widget.destroy()
+
+        ctk.CTkLabel(scrollable_frame, font=pold_font, text=p['Name']).pack()
 
     if sprite_url:
         response = requests.get(sprite_url)
@@ -199,7 +232,7 @@ def optionmenu_callback(choice=None):
         ctk.CTkButton(
             scrollable_frame,
             text=f"{row['Name']}",
-            command=lambda p=row: show_pokemon(p),
+            command=lambda p=row: show_pokemon_threaded(p),
             width=300
         ).pack(pady=20)
 
@@ -210,5 +243,47 @@ optionmenu = ctk.CTkOptionMenu(app, values=["All", "Fire", "Water", "Grass", "No
 optionmenu.set("All")
 optionmenu.pack(padx=20, pady=20)
 optionmenu.place(relx=0.14, rely=0.37, anchor="sw")
+
+
+def generation_callback(choice=None):
+    if choice is None:
+        choice = generationmenu.get()
+
+    for widget in scrollable_frame.winfo_children():
+        widget.destroy()
+
+    if choice == "All":
+        filtered_df = df
+
+    else:
+        filtered_df = df[df['Generation'] == int(choice)]
+
+    ctk.CTkLabel(scrollable_frame, text=f"Generation {choice} ({len(filtered_df)} Pokemon)", font=bold_font).pack(pady=20)
+
+    for idx, row in filtered_df.head(15).iterrows():
+            ctk.CTkButton(
+                scrollable_frame,
+                text=f"{row['Name']}",
+                command=lambda p=row: show_pokemon_threaded(p),
+                width=300
+            ).pack(pady=20)
+
+
+generationmenu = ctk.CTkOptionMenu(app, values=["All"] + [str(i) for i in range(1,7)], command=generation_callback)
+
+generationmenu.set("All")
+generationmenu.pack(padx=20, pady=20)
+generationmenu.place(relx=0.26, rely=0.37, anchor="sw")
+
+
+
+
+
+
+
+
+
+
+
 
 app.mainloop()
