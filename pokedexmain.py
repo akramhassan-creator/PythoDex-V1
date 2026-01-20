@@ -7,6 +7,9 @@ import pokebase as pb
 import requests
 from io import BytesIO
 import threading
+import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 ctk.deactivate_automatic_dpi_awareness()
 
@@ -41,8 +44,9 @@ statfont = ctk.CTkFont(family="Helvetica", size=15)
 label = ctk.CTkLabel(app, font=tfont, text="Welcome to")
 label.pack(pady=50)
 
-poke_image = ctk.CTkImage(dark_image=Image.open("C:\\Users\\akybo\\PycharmProjects\\Pokedex-V1\\Pokedex_logo.png"),
+poke_image = ctk.CTkImage(dark_image=Image.open("C:\\Users\\Learner\\PycharmProjects\\Pokedex-V1\\Pokedex_logo.png"),
                           size=(387, 140))
+
 
 
 poke_label = ctk.CTkLabel(app, image=poke_image, text="")
@@ -59,6 +63,10 @@ close_button.place(relx=0.85, rely=0.95, anchor="nw")
 
 scrollable_frame = ctk.CTkScrollableFrame(app, width=500, height=500)
 scrollable_frame.pack(side="left", padx=20, pady=20)
+
+scrollable_frame_right = ctk.CTkScrollableFrame(app, width=800, height=800)
+scrollable_frame_right.pack(side="right", padx=10, pady=50)
+
 
 
 def clear_scrollable_frames():
@@ -116,6 +124,10 @@ if spinner_label and spinner_label.winfo_exists():
     spinner_label.destroy()
     spinner_label = None
 
+else:
+    for spinner_label in scrollable_frame.winfo_children():
+        label.destroy()
+
 
 def show_pokemon_threaded(p):
     start_spinner()
@@ -128,6 +140,11 @@ def show_pokemon_threaded(p):
             app.after(0, lambda: stop_spinner())
 
     threading.Thread(target=task, daemon=True).start()
+
+
+def statstab(stats):
+    ctk.CTkFrame(scrollable_frame_right.pack())
+    ctk.CTkScrollableFrame(scrollable_frame_right, height=50, width=50).pack()
 
 
 def show_pokemon(p):
@@ -174,6 +191,7 @@ def show_pokemon(p):
 
     ctk.CTkLabel(scrollable_frame, font=bold_font, text="Base Stats").pack(pady=15, padx=5)
 
+
     stats = [
         ("HP", int(p['HP'])),
         ("Attack", int(p['Attack'])),
@@ -183,12 +201,38 @@ def show_pokemon(p):
         ("Speed", int(p['Speed']))
     ]
 
+    for widget in scrollable_frame_right.winfo_children():
+        widget.destroy()
+
+    fig, ax = plt.subplots(figsize=(10, 10))
+
+    stat_names = [stat[0] for stat in stats]
+    stat_values = [stat[1] for stat in stats]
+
+    ax.bar(stat_names, stat_values, color="red", edgecolor="black")
+
+    ax.set_ylabel('Stat Value')
+    ax.set_title(f' {p["Name"]} Base Stats')
+    ax.set_ylim(0, max(stat_values) + 20)
+
+    ax.tick_params(axis='x', rotation=45)
+    plt.subplots_adjust(right=0.2)
+
+    plt.tight_layout()
+
+    canvas = FigureCanvasTkAgg(fig, master=scrollable_frame_right)
+    canvas.draw()
+    canvas.get_tk_widget().pack()
+
+    plt.close(fig)
+
     for stat_name, stat_value in stats:
         stat_frame = ctk.CTkFrame(scrollable_frame)
         stat_frame.pack(fill="x", pady=15)
 
         ctk.CTkLabel(stat_frame, text=f"{stat_name}:", font=statfont).pack(side="left")
         ctk.CTkLabel(stat_frame, text=str(stat_value), font=statfont).pack(side="right")
+
 
 
 def button_click_event():
@@ -274,16 +318,6 @@ generationmenu = ctk.CTkOptionMenu(app, values=["All"] + [str(i) for i in range(
 generationmenu.set("All")
 generationmenu.pack(padx=20, pady=20)
 generationmenu.place(relx=0.26, rely=0.37, anchor="sw")
-
-
-
-
-
-
-
-
-
-
 
 
 app.mainloop()
