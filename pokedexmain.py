@@ -1,6 +1,7 @@
 import pandas as pd
 import customtkinter as ctk
 import matplotlib
+matplotlib.use('agg')
 from customtkinter import CTkImage
 from PIL import Image
 import pokebase as pb
@@ -13,6 +14,9 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 ctk.deactivate_automatic_dpi_awareness()
 
+ctk.set_widget_scaling(1.12)  # widget dimensions and text size
+ctk.set_window_scaling(1.12)  # window geometry dimensions
+
 df = pd.read_csv('pokemondata.csv', sep=',', header=0)
 
 print(df.to_string())
@@ -22,7 +26,7 @@ ctk.set_default_color_theme("green")
 
 app = ctk.CTk()
 app.title("Pokedex Tracker")
-app.geometry("1280x800")
+app.geometry("1920x1080")
 app.wm_iconbitmap('pokeball.ico')
 
 spinner_angle = 0
@@ -39,9 +43,11 @@ tfont = ctk.CTkFont(family="<Helvetica>", size=20)
 bold_font = ctk.CTkFont(family="Helvetica", size=20, weight="bold")
 pold_font = ctk.CTkFont(family="Helvetica", size=30, weight="bold")
 statfont = ctk.CTkFont(family="Helvetica", size=15)
+abfont = ctk.CTkFont(family="Pokemon Solid", size=13)
+newfont = ctk.CTkFont(family="Pokemon Hollow", size=30, weight="bold")
+hfont = ctk.CTkFont(family="Pokemon Hollow", size=8, weight="bold")
 
-
-label = ctk.CTkLabel(app, font=tfont, text="Welcome to")
+label = ctk.CTkLabel(app, font=newfont, text="Welcome to")
 label.pack(pady=50)
 
 poke_image = ctk.CTkImage(dark_image=Image.open("C:\\Users\\Learner\\PycharmProjects\\Pokedex-V1\\Pokedex_logo.png"),
@@ -59,12 +65,12 @@ close_button = ctk.CTkButton(
     font=afont,
     fg_color="red",
     hover_color="darkred")
-close_button.place(relx=0.85, rely=0.95, anchor="nw")
+close_button.place(relx=0.90, rely=0.96, anchor="nw")
 
 scrollable_frame = ctk.CTkScrollableFrame(app, width=500, height=500)
 scrollable_frame.pack(side="left", padx=20, pady=20)
 
-scrollable_frame_right = ctk.CTkScrollableFrame(app, width=800, height=800)
+scrollable_frame_right = ctk.CTkScrollableFrame(app, width=500, height=800)
 scrollable_frame_right.pack(side="right", padx=10, pady=50)
 
 
@@ -204,7 +210,7 @@ def show_pokemon(p):
     for widget in scrollable_frame_right.winfo_children():
         widget.destroy()
 
-    fig, ax = plt.subplots(figsize=(10, 10))
+    fig, ax = plt.subplots(figsize=(5, 10))
 
     stat_names = [stat[0] for stat in stats]
     stat_values = [stat[1] for stat in stats]
@@ -252,9 +258,13 @@ def button_click_event():
 
     show_pokemon_threaded(result.iloc[0])
 
+label = ctk.CTkLabel(app, font=abfont, text="Search for Pokemon")
+label.bind("<Button-1>", button_click_event)
+label.pack(pady=20)
+label.place(relx=0.025, rely=0.34, anchor="sw")
 
 button = ctk.CTkButton(app, text="Search 🔍", command=button_click_event)
-button.pack(padx=20, pady=20)
+button.pack(padx=30, pady=30)
 button.place(relx=0.02, rely=0.37, anchor="sw")
 
 
@@ -284,9 +294,15 @@ def optionmenu_callback(choice=None):
 optionmenu = ctk.CTkOptionMenu(app, values=["All", "Fire", "Water", "Grass", "Normal", "Electric", "Ice", "Fighting",
                                             "Poison", "Ground", "Flying", "Psychic", "Bug", "Rock", "Ghost", "Dragon",
                                             "Dark", "Steel", "Fairy"], command=optionmenu_callback)
+
+label = ctk.CTkLabel(app, font=abfont, text="Filter by Type")
+label.bind("<Button-1>", optionmenu)
+label.pack(pady=20)
+label.place(relx=0.133, rely=0.339, anchor="sw")
+
 optionmenu.set("All")
 optionmenu.pack(padx=20, pady=20)
-optionmenu.place(relx=0.14, rely=0.37, anchor="sw")
+optionmenu.place(relx=0.12, rely=0.37, anchor="sw")
 
 
 def generation_callback(choice=None):
@@ -315,9 +331,14 @@ def generation_callback(choice=None):
 
 generationmenu = ctk.CTkOptionMenu(app, values=["All"] + [str(i) for i in range(1,7)], command=generation_callback)
 
+label = ctk.CTkLabel(app, font=abfont, text="Filter by Gen")
+label.bind("<Button-1>", generationmenu)
+label.pack(pady=20)
+label.place(relx=0.233, rely=0.339, anchor="sw")
+
 generationmenu.set("All")
-generationmenu.pack(padx=20, pady=20)
-generationmenu.place(relx=0.26, rely=0.37, anchor="sw")
+generationmenu.pack(padx=30, pady=30)
+generationmenu.place(relx=0.22, rely=0.37, anchor="sw")
 
 
 app.mainloop()
