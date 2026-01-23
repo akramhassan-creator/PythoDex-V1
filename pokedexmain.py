@@ -14,11 +14,14 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 ctk.deactivate_automatic_dpi_awareness()
 
+
+
 ctk.set_widget_scaling(1.12)  # widget dimensions and text size
 ctk.set_window_scaling(1.12)  # window geometry dimensions
 
 df = pd.read_csv('pokemondata.csv', sep=',', header=0)
-
+df['Name'] = df['Name'].str.replace(r'^.*?(?=Mega)', '', regex=True)
+print(df)
 print(df.to_string())
 
 ctk.set_appearance_mode("dark")
@@ -46,6 +49,7 @@ statfont = ctk.CTkFont(family="Helvetica", size=15)
 abfont = ctk.CTkFont(family="Pokemon Solid", size=13)
 newfont = ctk.CTkFont(family="Pokemon Hollow", size=30, weight="bold")
 hfont = ctk.CTkFont(family="Pokemon Hollow", size=8, weight="bold")
+pfont = ctk.CTkFont(family="Pokemon Solid", size=20, weight="bold")
 
 label = ctk.CTkLabel(app, font=newfont, text="Welcome to")
 label.pack(pady=50)
@@ -106,7 +110,7 @@ def start_spinner():
 
     spinner_angle = 0
 
-    ctk.CTkLabel(scrollable_frame, text = 'Loading Pokemon...', font=tfont, text_color="yellow").pack(pady=20)
+    ctk.CTkLabel(scrollable_frame, text = 'Loading Pokemon...', font=pfont, text_color="yellow").pack(pady=20)
 
     spinner_ctk_image = ctk.CTkImage(
         dark_image=spinner_image_original, size=(100, 100))
@@ -291,7 +295,7 @@ def optionmenu_callback(choice=None):
         ).pack(pady=20)
 
 
-optionmenu = ctk.CTkOptionMenu(app, values=["All", "Fire", "Water", "Grass", "Normal", "Electric", "Ice", "Fighting",
+optionmenu = ctk.CTkOptionMenu(app, values=["Fire", "Water", "Grass", "Normal", "Electric", "Ice", "Fighting",
                                             "Poison", "Ground", "Flying", "Psychic", "Bug", "Rock", "Ghost", "Dragon",
                                             "Dark", "Steel", "Fairy"], command=optionmenu_callback)
 
@@ -300,7 +304,7 @@ label.bind("<Button-1>", optionmenu)
 label.pack(pady=20)
 label.place(relx=0.133, rely=0.339, anchor="sw")
 
-optionmenu.set("All")
+optionmenu.set("Choose Type")
 optionmenu.pack(padx=20, pady=20)
 optionmenu.place(relx=0.12, rely=0.37, anchor="sw")
 
@@ -336,7 +340,7 @@ label.bind("<Button-1>", generationmenu)
 label.pack(pady=20)
 label.place(relx=0.233, rely=0.339, anchor="sw")
 
-generationmenu.set("All")
+generationmenu.set("Choose Gen")
 generationmenu.pack(padx=30, pady=30)
 generationmenu.place(relx=0.22, rely=0.37, anchor="sw")
 
