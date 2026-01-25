@@ -1,3 +1,4 @@
+
 import pandas as pd
 import customtkinter as ctk
 import matplotlib
@@ -15,9 +16,6 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 ctk.deactivate_automatic_dpi_awareness()
 
 
-
-ctk.set_widget_scaling(1.12)  # widget dimensions and text size
-ctk.set_window_scaling(1.12)  # window geometry dimensions
 
 df = pd.read_csv('pokemondata.csv', sep=',', header=0)
 df['Name'] = df['Name'].str.replace(r'^.*?(?=Mega)', '', regex=True)
@@ -50,17 +48,22 @@ abfont = ctk.CTkFont(family="Pokemon Solid", size=13)
 newfont = ctk.CTkFont(family="Pokemon Hollow", size=30, weight="bold")
 hfont = ctk.CTkFont(family="Pokemon Hollow", size=8, weight="bold")
 pfont = ctk.CTkFont(family="Pokemon Solid", size=20, weight="bold")
+ffont = ctk.CTkFont(family="Helvetica", size=20)
 
-label = ctk.CTkLabel(app, font=newfont, text="Welcome to")
+label = ctk.CTkLabel(app, font=ffont, text="Welcome to")
 label.pack(pady=50)
 
-poke_image = ctk.CTkImage(dark_image=Image.open("C:\\Users\\Learner\\PycharmProjects\\Pokedex-V1\\Pokedex_logo.png"),
+poke_image = ctk.CTkImage(dark_image=Image.open("C:\\Users\\akybo\\PycharmProjects\\Pokedex-V1\\Pokedex_logo.png"),
                           size=(387, 140))
 
 
 
 poke_label = ctk.CTkLabel(app, image=poke_image, text="")
-poke_label.pack(pady=(20, 0))
+poke_label.pack(pady=(10, 0))
+
+control_frame = ctk.CTkFrame(app, fg_color="#2B2B2B", height=80)
+control_frame.pack(side="top", fill="x", padx=20, pady=(10, 5))
+
 
 close_button = ctk.CTkButton(
     app,
@@ -71,11 +74,17 @@ close_button = ctk.CTkButton(
     hover_color="darkred")
 close_button.place(relx=0.90, rely=0.96, anchor="nw")
 
-scrollable_frame = ctk.CTkScrollableFrame(app, width=500, height=500)
-scrollable_frame.pack(side="left", padx=20, pady=20)
 
-scrollable_frame_right = ctk.CTkScrollableFrame(app, width=500, height=800)
-scrollable_frame_right.pack(side="right", padx=10, pady=50)
+scrollable_frame = ctk.CTkScrollableFrame(app, width=450, height=700)
+scrollable_frame.pack(side="left", padx=10, pady=10, fill="both", expand=True)
+
+
+scrollable_frame_right = ctk.CTkScrollableFrame(app, width=700, height=700, fg_color="#2b2b2b")
+scrollable_frame_right.pack(side="right", padx=10, pady=10, fill="both", expand=True)
+
+
+poke_header = ctk.CTkLabel(scrollable_frame_right, text="Stats & Charts", font=pold_font, text_color="#FFDE00")
+poke_header.pack(pady=20)
 
 
 
@@ -126,17 +135,14 @@ def start_spinner():
     spinner_running = True
     rotate_spinner()
 
+
 def stop_spinner():
-    global spinner_running
+    global spinner_running, spinner_label
     spinner_running = False
 
-if spinner_label and spinner_label.winfo_exists():
-    spinner_label.destroy()
-    spinner_label = None
-
-else:
-    for spinner_label in scrollable_frame.winfo_children():
-        label.destroy()
+    if spinner_label and spinner_label.winfo_exists():
+        spinner_label.destroy()
+        spinner_label = None
 
 
 def show_pokemon_threaded(p):
@@ -152,16 +158,16 @@ def show_pokemon_threaded(p):
     threading.Thread(target=task, daemon=True).start()
 
 
-def statstab(stats):
-    ctk.CTkFrame(scrollable_frame_right.pack())
-    ctk.CTkScrollableFrame(scrollable_frame_right, height=50, width=50).pack()
+def poke_header():
+    for widget in scrollable_frame_right.winfo_children():
+        if widget != poke_header:
+            widget.destroy()
 
 
 def show_pokemon(p):
 
     pokemon_name = p['Name'].lower()
     pokemon = pb.pokemon(pokemon_name)
-
     sprite_url = pokemon.sprites.front_default
 
     if pd.notna(p['Type 2']):
@@ -169,30 +175,31 @@ def show_pokemon(p):
     else:
         type2_text = "Not Applicable"
 
-        for widget in scrollable_frame.winfo_children():
-            widget.destroy()
-
-        ctk.CTkLabel(scrollable_frame, font=pold_font, text=p['Name']).pack()
-
     if sprite_url:
         response = requests.get(sprite_url)
         image_data = Image.open(BytesIO(response.content))
 
-        sprite_image = ctk.CTkImage(
+    for widget in scrollable_frame.winfo_children():
+            widget.destroy()
+
+    for widget in scrollable_frame_right.winfo_children():
+        if widget != poke_header:
+            widget.destroy()
+
+    ctk.CTkLabel(scrollable_frame, font=pold_font, text=p['Name']).pack()
+
+    sprite_image = ctk.CTkImage(
             dark_image=image_data,
             size=(150, 150)
         )
 
-        sprite_label = ctk.CTkLabel(
+    sprite_label = ctk.CTkLabel(
             scrollable_frame,
             image=sprite_image,
             text=""
         )
-        sprite_label.image = sprite_image
-        sprite_label.pack(pady=10)
-    else:
-        ctk.CTkLabel(scrollable_frame, text="No Sprite Found").pack()
-        ctk.CTkLabel(scrollable_frame, text="No Sprite Found").pack()
+    sprite_label.image = sprite_image
+    sprite_label.pack(pady=10)
 
     ctk.CTkLabel(scrollable_frame, font=statfont, text=f"Type 1: {p['Type 1']}").pack()
     ctk.CTkLabel(scrollable_frame, font=statfont, text=f"Type 2: {type2_text}").pack()
@@ -214,7 +221,7 @@ def show_pokemon(p):
     for widget in scrollable_frame_right.winfo_children():
         widget.destroy()
 
-    fig, ax = plt.subplots(figsize=(5, 10))
+    fig, ax = plt.subplots(figsize=(6, 5))
 
     stat_names = [stat[0] for stat in stats]
     stat_values = [stat[1] for stat in stats]
@@ -226,13 +233,12 @@ def show_pokemon(p):
     ax.set_ylim(0, max(stat_values) + 20)
 
     ax.tick_params(axis='x', rotation=45)
-    plt.subplots_adjust(right=0.2)
 
     plt.tight_layout()
 
     canvas = FigureCanvasTkAgg(fig, master=scrollable_frame_right)
     canvas.draw()
-    canvas.get_tk_widget().pack()
+    canvas.get_tk_widget().pack(pady=20, padx=20, fill="both", expand=True)
 
     plt.close(fig)
 
@@ -262,14 +268,14 @@ def button_click_event():
 
     show_pokemon_threaded(result.iloc[0])
 
-label = ctk.CTkLabel(app, font=abfont, text="Search for Pokemon")
+label = ctk.CTkLabel(control_frame, text="Search for Pokémon", font=abfont, fg_color="transparent")
 label.bind("<Button-1>", button_click_event)
 label.pack(pady=20)
-label.place(relx=0.025, rely=0.34, anchor="sw")
+label.place(relx=0.025, rely=0.46, anchor="sw")
 
-button = ctk.CTkButton(app, text="Search 🔍", command=button_click_event)
-button.pack(padx=30, pady=30)
-button.place(relx=0.02, rely=0.37, anchor="sw")
+button = ctk.CTkButton(control_frame, text="Search 🔍", command=button_click_event)
+button.pack(padx=10, pady=10)
+button.place(relx=0.02, rely=0.9, anchor="sw")
 
 
 def optionmenu_callback(choice=None):
@@ -295,14 +301,14 @@ def optionmenu_callback(choice=None):
         ).pack(pady=20)
 
 
-optionmenu = ctk.CTkOptionMenu(app, values=["Fire", "Water", "Grass", "Normal", "Electric", "Ice", "Fighting",
+optionmenu = ctk.CTkOptionMenu(control_frame, values=["Fire", "Water", "Grass", "Normal", "Electric", "Ice", "Fighting",
                                             "Poison", "Ground", "Flying", "Psychic", "Bug", "Rock", "Ghost", "Dragon",
                                             "Dark", "Steel", "Fairy"], command=optionmenu_callback)
 
-label = ctk.CTkLabel(app, font=abfont, text="Filter by Type")
+label = ctk.CTkLabel(control_frame, text="Filter by Type", font=afont, fg_color="transparent")
 label.bind("<Button-1>", optionmenu)
 label.pack(pady=20)
-label.place(relx=0.133, rely=0.339, anchor="sw")
+label.place(relx=0.133, rely=0.305, anchor="sw")
 
 optionmenu.set("Choose Type")
 optionmenu.pack(padx=20, pady=20)
@@ -333,7 +339,7 @@ def generation_callback(choice=None):
             ).pack(pady=20)
 
 
-generationmenu = ctk.CTkOptionMenu(app, values=["All"] + [str(i) for i in range(1,7)], command=generation_callback)
+generationmenu = ctk.CTkOptionMenu(control_frame, values=["All"] + [str(i) for i in range(1,7)], command=generation_callback)
 
 label = ctk.CTkLabel(app, font=abfont, text="Filter by Gen")
 label.bind("<Button-1>", generationmenu)
