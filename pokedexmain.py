@@ -1,4 +1,3 @@
-
 import pandas as pd
 import customtkinter as ctk
 import matplotlib
@@ -53,7 +52,7 @@ ffont = ctk.CTkFont(family="Helvetica", size=20)
 label = ctk.CTkLabel(app, font=ffont, text="Welcome to")
 label.pack(pady=50)
 
-poke_image = ctk.CTkImage(dark_image=Image.open("C:\\Users\\akybo\\PycharmProjects\\Pokedex-V1\\Pokedex_logo.png"),
+poke_image = ctk.CTkImage(dark_image=Image.open("C:\\Users\\Learner\\PycharmProjects\\Pokedex-V1\\Pokedex_logo.png"),
                           size=(387, 140))
 
 
@@ -61,9 +60,13 @@ poke_image = ctk.CTkImage(dark_image=Image.open("C:\\Users\\akybo\\PycharmProjec
 poke_label = ctk.CTkLabel(app, image=poke_image, text="")
 poke_label.pack(pady=(10, 0))
 
-control_frame = ctk.CTkFrame(app, fg_color="#2B2B2B", height=80)
-control_frame.pack(side="top", fill="x", padx=20, pady=(10, 5))
+poke_frame = ctk.CTkFrame(app, fg_color="#2B2B2B", height=60, width=1)
+poke_frame.pack(side="bottom", fill="x", padx=10, pady=(5, 5))
 
+control_frame = ctk.CTkFrame(app, fg_color="#2B2B2B", height=80)
+control_frame.pack(side="top", fill="both", padx=20, pady=(10, 5))
+
+#333333
 
 close_button = ctk.CTkButton(
     app,
@@ -305,14 +308,14 @@ optionmenu = ctk.CTkOptionMenu(control_frame, values=["Fire", "Water", "Grass", 
                                             "Poison", "Ground", "Flying", "Psychic", "Bug", "Rock", "Ghost", "Dragon",
                                             "Dark", "Steel", "Fairy"], command=optionmenu_callback)
 
-label = ctk.CTkLabel(control_frame, text="Filter by Type", font=afont, fg_color="transparent")
+label = ctk.CTkLabel(control_frame, text="Filter by Type", font=abfont, fg_color="transparent")
 label.bind("<Button-1>", optionmenu)
 label.pack(pady=20)
-label.place(relx=0.133, rely=0.305, anchor="sw")
+label.place(relx=0.13, rely=0.45, anchor="sw")
 
 optionmenu.set("Choose Type")
 optionmenu.pack(padx=20, pady=20)
-optionmenu.place(relx=0.12, rely=0.37, anchor="sw")
+optionmenu.place(relx=0.12, rely=0.9, anchor="sw")
 
 
 def generation_callback(choice=None):
@@ -341,14 +344,14 @@ def generation_callback(choice=None):
 
 generationmenu = ctk.CTkOptionMenu(control_frame, values=["All"] + [str(i) for i in range(1,7)], command=generation_callback)
 
-label = ctk.CTkLabel(app, font=abfont, text="Filter by Gen")
+label = ctk.CTkLabel(control_frame, text="Filter by Gen", font=abfont, fg_color="transparent")
 label.bind("<Button-1>", generationmenu)
 label.pack(pady=20)
-label.place(relx=0.233, rely=0.339, anchor="sw")
+label.place(relx=0.233, rely=0.45, anchor="sw")
 
 generationmenu.set("Choose Gen")
 generationmenu.pack(padx=30, pady=30)
-generationmenu.place(relx=0.22, rely=0.37, anchor="sw")
+generationmenu.place(relx=0.22, rely=0.9, anchor="sw")
 
 
 app.mainloop()
