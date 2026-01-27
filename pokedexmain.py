@@ -16,8 +16,10 @@ ctk.deactivate_automatic_dpi_awareness()
 
 
 
+
 df = pd.read_csv('pokemondata.csv', sep=',', header=0)
-df['Name'] = df['Name'].str.replace(r'^.*?(?=Mega)', '', regex=True)
+df['Name'] = df['Name'].str.replace(r'^.*?(?=Mega)', '', regex=True) # Data Manipulation (cleans the mega pokemon names so we can use PokeAPI)
+df['Name'] = df['Name'].str.replace(r'([a-z])([A-Z])', r'\1 \2', regex=True) # Some if it is not just mega so regex can fix it with the capital letters conjoining :)
 print(df)
 print(df.to_string())
 
@@ -166,10 +168,24 @@ def poke_header():
         if widget != poke_header:
             widget.destroy()
 
+def normalize_pokemon_name(name: str) -> str:
+    name = name.lower().strip()
+
+    # Handle Mega Pokémon
+    if name.startswith("mega "):
+        parts = name.replace("mega ", "").split()
+        if len(parts) > 1 and parts[-1] in ["x", "y"]:
+            base = "-".join(parts[:-1])
+            return f"{base}-mega-{parts[-1]}"
+        else:
+            return f"{name.replace('mega ', '')}-mega"
+
+    return name.replace(" ", "-")
+
+
 
 def show_pokemon(p):
-
-    pokemon_name = p['Name'].lower()
+    pokemon_name = normalize_pokemon_name(p['Name'])
     pokemon = pb.pokemon(pokemon_name)
     sprite_url = pokemon.sprites.front_default
 
@@ -224,7 +240,18 @@ def show_pokemon(p):
     for widget in scrollable_frame_right.winfo_children():
         widget.destroy()
 
-    fig, ax = plt.subplots(figsize=(6, 5))
+    fig, ax = plt.subplots(
+        figsize=(7, 5),
+        facecolor="#2b2b2b"  # match CTk frame
+    )
+
+    ax.set_facecolor("#2b2b2b")
+    ax.tick_params(colors="white")
+    ax.yaxis.label.set_color("white")
+    ax.title.set_color("white")
+
+    for spine in ax.spines.values():
+        spine.set_color("white")
 
     stat_names = [stat[0] for stat in stats]
     stat_values = [stat[1] for stat in stats]
@@ -241,7 +268,10 @@ def show_pokemon(p):
 
     canvas = FigureCanvasTkAgg(fig, master=scrollable_frame_right)
     canvas.draw()
-    canvas.get_tk_widget().pack(pady=20, padx=20, fill="both", expand=True)
+
+    canvas_widget = canvas.get_tk_widget()
+    canvas_widget.configure(bg="#2b2b2b")  # THIS is the key line
+    canvas_widget.pack(pady=20, padx=20, fill="both", expand=True)
 
     plt.close(fig)
 
