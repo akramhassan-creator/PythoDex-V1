@@ -1,4 +1,4 @@
-# Pokedex-V1
+# PythoDex-V1
 
 In order for this application to run, you must use the following:
 
