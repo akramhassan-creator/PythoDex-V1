@@ -18,8 +18,8 @@ ctk.deactivate_automatic_dpi_awareness()
 
 
 df = pd.read_csv('pokemondata.csv', sep=',', header=0)
-df['Name'] = df['Name'].str.replace(r'^.*?(?=Mega)', '', regex=True) # Data Manipulation (cleans the mega pokemon names so we can use PokeAPI)
-df['Name'] = df['Name'].str.replace(r'([a-z])([A-Z])', r'\1 \2', regex=True) # Some if it is not just mega so regex can fix it with the capital letters conjoining :)
+df['Name'] = df['Name'].str.replace(r'^.*?(?=Mega)', '', regex=True) # Data Manipulation
+df['Name'] = df['Name'].str.replace(r'([a-z])([A-Z])', r'\1 \2', regex=True)
 print(df)
 print(df.to_string())
 
@@ -27,7 +27,7 @@ ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("green")
 
 app = ctk.CTk()
-app.title("Pokedex Tracker")
+app.title("PythoDex Tracker")
 app.geometry("1920x1080")
 app.wm_iconbitmap('pokeball.ico')
 
@@ -36,7 +36,9 @@ spinner_running = False
 spinner_label = None
 spinner_image_original = Image.open("rotpoke.png")
 
-
+# Filter state
+current_type_filter = "All"
+current_gen_filter = "All"
 
 my_font = ctk.CTkFont(family="<Helvetica>", size=20)
 font = ctk.CTkFont(family="<Helvetica>", size=30)
@@ -54,7 +56,7 @@ ffont = ctk.CTkFont(family="Helvetica", size=20)
 label = ctk.CTkLabel(app, font=ffont, text="Welcome to")
 label.pack(pady=50)
 
-poke_image = ctk.CTkImage(dark_image=Image.open("C:\\Users\\Learner\\PycharmProjects\\Pokedex-V1\\Pokedex_logo.png"),
+poke_image = ctk.CTkImage(dark_image=Image.open("C:\\Users\\akybo\\PycharmProjects\\Pokedex-V1\\Pokedex_logo.png"),
                           size=(387, 140))
 
 
@@ -67,6 +69,14 @@ poke_frame.pack(side="bottom", fill="x", padx=10, pady=(5, 5))
 
 control_frame = ctk.CTkFrame(app, fg_color="#2B2B2B", height=80)
 control_frame.pack(side="top", fill="both", padx=20, pady=(10, 5))
+
+def show_random_pokemon():
+    random_pokemon = df.sample(n=1).iloc[0]
+    show_pokemon_threaded(random_pokemon)
+
+random_button = ctk.CTkButton(control_frame, text="Random 🎲", command=show_random_pokemon, font=abfont)
+random_button.pack(side="left", padx=5)
+random_button.place(relx=0.32, rely=0.9, anchor="sw")
 
 #333333
 
@@ -96,6 +106,48 @@ poke_header.pack(pady=20)
 def clear_scrollable_frames():
     for widget in scrollable_frame.winfo_children():
         widget.destroy()
+
+def apply_filters():
+    for widget in scrollable_frame.winfo_children():
+        widget.destroy()
+
+    filtered_df = df
+
+    if current_type_filter != "All":
+        filtered_df = filtered_df[(filtered_df["Type 1"] == current_type_filter) |
+                                 (filtered_df["Type 2"] == current_type_filter)]
+
+    if current_gen_filter != "All":
+        filtered_df = filtered_df[filtered_df["Generation"] == int(current_gen_filter)]
+
+    if current_type_filter != "All" and current_gen_filter != "All":
+       title = f"{current_type_filter} Type, Gen {current_gen_filter} ({len(filtered_df)} Pokemon)"
+    elif current_type_filter != "All":
+        title = f"{current_type_filter} Type 1, ({len(filtered_df)} Pokemon)"
+    elif current_gen_filter != "All":
+        title = f"Generation {current_gen_filter} ({len(filtered_df)} Pokemon)"
+    else:
+        title = f"All Pokemon ({len(filtered_df)} Pokemon)"
+
+    ctk.CTkLabel(scrollable_frame, text=title, font=bold_font).pack(pady=20)
+
+    for idx, row in filtered_df.head(15).iterrows():
+        ctk.CTkButton(
+            scrollable_frame,
+            text=f"{row['Name']}",
+            command=lambda p=row: show_pokemon_threaded(p),
+            width=300
+         ).pack(pady=3)
+
+    # Show if there are more pokemons with this set
+    if len(filtered_df) > 15:
+        ctk.CTkLabel(
+            scrollable_frame,
+            text=f"...and {len(filtered_df) - 15} more",
+            font=afont,
+            text_color="gray"
+        ).pack(pady=3)
+
 
 def rotate_spinner():
     global spinner_angle, spinner_running
@@ -273,6 +325,8 @@ def show_pokemon(p):
     canvas_widget.configure(bg="#2b2b2b")  # THIS is the key line
     canvas_widget.pack(pady=20, padx=20, fill="both", expand=True)
 
+
+
     plt.close(fig)
 
     for stat_name, stat_value in stats:
@@ -312,29 +366,17 @@ button.place(relx=0.02, rely=0.9, anchor="sw")
 
 
 def optionmenu_callback(choice=None):
+    global current_type_filter
+
     if choice is None:
         choice = optionmenu.get()
 
-    for widget in scrollable_frame.winfo_children():
-        widget.destroy()
-
-    if choice == "All":
-        filtered_df = df
-    else:
-        filtered_df = df[(df['Type 1'] == choice) | (df['Type 2'] == choice)]
-
-    ctk.CTkLabel(scrollable_frame, text=f"{choice} Type({len(filtered_df)} Pokemon)", font=bold_font).pack(pady=20)
-
-    for idx, row in filtered_df.head(15).iterrows():
-        ctk.CTkButton(
-            scrollable_frame,
-            text=f"{row['Name']}",
-            command=lambda p=row: show_pokemon_threaded(p),
-            width=300
-        ).pack(pady=20)
+    current_type_filter = choice
+    apply_filters()
 
 
-optionmenu = ctk.CTkOptionMenu(control_frame, values=["Fire", "Water", "Grass", "Normal", "Electric", "Ice", "Fighting",
+
+optionmenu = ctk.CTkOptionMenu(control_frame, values=["All", "Fire", "Water", "Grass", "Normal", "Electric", "Ice", "Fighting",
                                             "Poison", "Ground", "Flying", "Psychic", "Bug", "Rock", "Ghost", "Dragon",
                                             "Dark", "Steel", "Fairy"], command=optionmenu_callback)
 
@@ -349,27 +391,14 @@ optionmenu.place(relx=0.12, rely=0.9, anchor="sw")
 
 
 def generation_callback(choice=None):
+    global current_gen_filter
+
     if choice is None:
-        choice = generationmenu.get()
+        choice = generationmenu.get()#
 
-    for widget in scrollable_frame.winfo_children():
-        widget.destroy()
+    current_gen_filter = choice
+    apply_filters()
 
-    if choice == "All":
-        filtered_df = df
-
-    else:
-        filtered_df = df[df['Generation'] == int(choice)]
-
-    ctk.CTkLabel(scrollable_frame, text=f"Generation {choice} ({len(filtered_df)} Pokemon)", font=bold_font).pack(pady=20)
-
-    for idx, row in filtered_df.head(15).iterrows():
-            ctk.CTkButton(
-                scrollable_frame,
-                text=f"{row['Name']}",
-                command=lambda p=row: show_pokemon_threaded(p),
-                width=300
-            ).pack(pady=20)
 
 
 generationmenu = ctk.CTkOptionMenu(control_frame, values=["All"] + [str(i) for i in range(1,7)], command=generation_callback)
